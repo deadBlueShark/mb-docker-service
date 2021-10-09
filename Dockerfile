@@ -1,3 +1,3 @@
-FROM docker.elastic.co/elasticsearch/elasticsearch:5.5.3
+FROM elasticsearch-matchbox
 
 RUN /usr/share/elasticsearch/bin/elasticsearch-plugin install analysis-kuromoji
