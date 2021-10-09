@@ -1,0 +1,65 @@
+version: '3'
+
+services:
+  mysql:
+    container_name: mysql-matchbox
+    image: mysql:5.7
+    ports:
+      - 13306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=Welcome123
+    volumes:
+      - mysqldata:/var/lib/mysql
+      - ./matchbox.sql:/tmp/matchbox.sql
+    networks:
+      - dbnet
+
+  elasticsearch:
+    image: elasticsearch:5.5.0
+    container_name: elasticsearch-matchbox
+    environment:
+      - discovery.type=single-node
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    # volumes:
+    #   - esdata:/usr/share/elasticsearch/data
+    #   - ./install-plugin.sh:/tmp/install-plugin.sh
+    # command: >
+    #   bash -c "chmod +x /tmp/install-plugin.sh &&
+    #           /tmp/install-plugin.sh c && /docker-entrypoint.sh"
+    ports:
+      - 9200:9200
+    networks:
+      - esnet
+
+  kibana:
+    image: kibana:5.5.0
+    container_name: kibana-matchbox
+    ports:
+     - 5601:5601
+    environment:
+     - ELASTICSEARCH_URL=http://elasticsearch:9200
+     - XPACK_MONITORING_ENABLED=false
+    networks:
+     - esnet
+
+volumes:
+  mysqldata:
+    driver: local
+  esdata:
+    driver: local
+
+networks:
+  esnet:
+    driver: bridge
+  dbnet:
+    driver: bridge
+
+# Can install ES plugin by Dockerfile, command in docker-compose (try failed, research more)
+# Here install by start ES first, then install by: 
+# docker exec 398b2b9f43fd bin/elasticsearch-plugin install analysis-kuromoji
